@@ -4,42 +4,25 @@ import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
-import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandling/withErrorHandling';
 
 import {connect} from 'react-redux';
-import * as actionTypes from '../../store/actions';
+import * as actions from '../../store/actions/index';
+
+import axios from '../../axios-orders';
 
 class BurgerBuilder extends Component {
    constructor(props) {
       super(props)
       this.state = {
          purchasing: false,
-         loading: false,
-         error: false,
-         ingredientPrices: null,
       }
    }
 
-   componentDidMount() {
-      let ingred = {};
-      axios.get('/ingredients.json')
-         .then(res => {
-            ingred = res.data;
-            this.setState({ingredients: res.data});
-            this.updatePurchaseState(ingred);
-         })
-         .catch(error => {
-            this.setState({error: true});
-         });
-      axios.get('/ingredientsPrices.json')
-         .then(res => {
-            this.setState({ingredientsPrices: res.data});
-         })
-         .catch(error => {
-            this.setState({error: true});
-         });
+   componentDidMount () {
+      this.props.onInitIngredients();
+      this.props.onInitIngredientPrices();
    }
 
 /*    addIngredientHandler = (type) => {
@@ -110,6 +93,7 @@ class BurgerBuilder extends Component {
       });
    } */
    purchaseContinueHandler = () => {
+      this.props.onInitPurchase();
       this.props.history.push("/checkout");
    }   
    
@@ -123,7 +107,7 @@ class BurgerBuilder extends Component {
       }
 
       let orderSummary = null;
-      let burger = this.state.error ? <p>Ingredients data could not be retrieved from the server.</p> : <Spinner />;
+      let burger = this.props.error ? <p>Ingredients data could not be retrieved from the server.</p> : <Spinner />;
       if(this.props.ingredients) {
          burger = (
             <Aux>
@@ -161,8 +145,9 @@ class BurgerBuilder extends Component {
 
 const mapStateToProps = (state) => {
    return { 
-      ingredients : state.ingredients,
-      totalPrice : state.totalPrice
+      ingredients : state.burgerBuilder.ingredients,
+      totalPrice : state.burgerBuilder.totalPrice,
+      error: state.burgerBuilder.error
    }
 };
 
@@ -170,16 +155,19 @@ const mapDispatchToProps = (dispatch) => {
    return {
       onIngredientAdded: (ingredientName) => {
          console.log('mapDispatchToProps'," ",ingredientName);
-         return dispatch({
-            type: actionTypes.ADD_INGREDIENT,
-            ingredientName: ingredientName
-         });
+         return dispatch(actions.addIngredient(ingredientName));
       },
       onIngredientRemove: (ingredientName) => {
-         return dispatch({
-            type: actionTypes.REMOVE_INGREDIENT,
-            ingredientName: ingredientName
-         });
+         return dispatch(actions.removeIngredient(ingredientName));
+      },
+      onInitIngredients: () => {
+         return dispatch(actions.initIngredients());
+      },
+      onInitIngredientPrices: () => {
+         return dispatch(actions.initIngredientPrices());
+      },
+      onInitPurchase: () => {
+         return dispatch(actions.purchaseInit());
       }
    }
 };
