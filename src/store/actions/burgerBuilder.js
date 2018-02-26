@@ -41,16 +41,11 @@ export const fetchIngredientPricesFailed = () => {
 
 export const initIngredients = () => {
    return dispatch => {
-      console.log("initIngredients")
       axios.get('/ingredients.json')
          .then(res => {
-            console.log("DATA:")
-            console.log(res.data)
             dispatch(setIngredients(res.data))
          })
          .catch(error => {
-            console.log("ERROR:")
-            console.log(error)
             dispatch(fetchIngredientsFailed())
          });
    }

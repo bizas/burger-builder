@@ -72,11 +72,17 @@ class BurgerBuilder extends Component {
    }
 
    purchaseHandler = () => {
-      this.setState({purchasing: true});
+      if (this.props.isAuth) {
+         this.setState({purchasing: true});
+      } else {
+         this.props.onSetAuthRedirectPath('/checkout');
+         this.props.history.push("/auth");
+      }
    }
 
    purchaseCancelHandler = () => {
       this.setState({purchasing: false});
+      
    }
 
 /*    Using Query params
@@ -118,7 +124,8 @@ class BurgerBuilder extends Component {
                   disabled={disabledInfo}
                   price={this.props.totalPrice}
                   purchasable={this.updatePurchaseState()}
-                  ordered={this.purchaseHandler}/>
+                  ordered={this.purchaseHandler}
+                  isAuth={this.props.isAuth}/>
             </Aux>);
          orderSummary = (<OrderSummary 
             ingredients={this.props.ingredients}
@@ -147,14 +154,14 @@ const mapStateToProps = (state) => {
    return { 
       ingredients : state.burgerBuilder.ingredients,
       totalPrice : state.burgerBuilder.totalPrice,
-      error: state.burgerBuilder.error
+      error: state.burgerBuilder.error,
+      isAuth: state.auth.token !== null
    }
 };
 
 const mapDispatchToProps = (dispatch) => {
    return {
       onIngredientAdded: (ingredientName) => {
-         console.log('mapDispatchToProps'," ",ingredientName);
          return dispatch(actions.addIngredient(ingredientName));
       },
       onIngredientRemove: (ingredientName) => {
@@ -168,6 +175,9 @@ const mapDispatchToProps = (dispatch) => {
       },
       onInitPurchase: () => {
          return dispatch(actions.purchaseInit());
+      },
+      onSetAuthRedirectPath: (path) => {
+         return dispatch(actions.setAuthRedirectPath(path));
       }
    }
 };
